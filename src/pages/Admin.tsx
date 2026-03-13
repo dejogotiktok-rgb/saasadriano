@@ -89,14 +89,12 @@ export default function Admin() {
   if (!isAdmin) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-destructive text-center">Acesso Negado</CardTitle>
-            <CardDescription className="text-center">
-              Você não tem permissão para acessar esta área.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <div className="w-full max-w-md p-6 bg-card border rounded-lg shadow-sm">
+          <h2 className="text-xl font-bold text-destructive text-center mb-2">Acesso Negado</h2>
+          <p className="text-muted-foreground text-center">
+            Você não tem permissão para acessar esta área.
+          </p>
+        </div>
       </div>
     );
   }
