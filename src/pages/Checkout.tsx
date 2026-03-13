@@ -55,7 +55,7 @@ export default function Checkout() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    amount: 24790, // R$ 247,90
+                    amount: 247.90, // R$ 247,90
                     description: `Lifetime Access - Vitrino (${email})`,
                     customer: {
                         name: fullName,
