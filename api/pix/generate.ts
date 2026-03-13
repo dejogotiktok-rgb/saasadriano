@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const GOUPAY_API_KEY = "gou_live_39185fce840443e4ac267b5ccaa3a488";
+const GOUPAY_API_KEY = "gou_live_b041f31a58ed464da3a2add9047bdb94";
 
 export default async function handler(req: any, res: any) {
     if (req.method !== 'POST') {
