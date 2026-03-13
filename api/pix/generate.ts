@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-
-const GOUPAY_API_KEY = "gou_live_b041f31a58ed464da3a2add9047bdb94";
+const GOUPAY_API_KEY = "gou_live_39185fce840443e4ac267b5ccaa3a488";
+const GOUPAY_RECIPIENT_ID = process.env.GOUPAY_RECIPIENT_ID;
+const GOUPAY_PLATFORM_ID = process.env.GOUPAY_PLATFORM_ID;
 
 export default async function handler(req: any, res: any) {
     if (req.method !== 'POST') {
@@ -15,22 +15,25 @@ export default async function handler(req: any, res: any) {
     const cleanCpf = (customer.cpf || "12345678900").replace(/\D/g, "");
 
     try {
+        const payload: any = {
+            amount: amountInCents,
+            description: description || "Compra na Vitrino",
+            customer: {
+                name: customer.name || "Cliente Vitrino",
+                email: customer.email,
+                cpf: cleanCpf,
+                phone: (customer.phone || "11999999999").replace(/\D/g, "")
+            }
+        };
+        if (GOUPAY_RECIPIENT_ID) payload.recipient_id = GOUPAY_RECIPIENT_ID;
+        if (GOUPAY_PLATFORM_ID) payload.platform_id = GOUPAY_PLATFORM_ID;
         const response = await fetch("https://www.goupay.com.br/api/v1/pix", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "x-api-key": GOUPAY_API_KEY
             },
-            body: JSON.stringify({
-                amount: amountInCents,
-                description: "Compra na Vitrino",
-                customer: {
-                    name: customer.name || "Cliente Vitrino",
-                    email: customer.email,
-                    cpf: cleanCpf,
-                    phone: "11999999999"
-                }
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();

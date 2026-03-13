@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { Sparkles, CreditCard, CheckCircle2, QrCode, Copy, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +12,10 @@ export default function Checkout() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [pixData, setPixData] = useState<{ qr_code: string; transaction_id: string } | null>(null);
+    const [fullName, setFullName] = useState<string>(user?.email?.split("@")[0] || "");
+    const [email, setEmail] = useState<string>(user?.email || "");
+    const [cpf, setCpf] = useState<string>("");
+    const [phone, setPhone] = useState<string>("");
 
     useEffect(() => {
         if (hasLifetimeAccess) {
@@ -18,13 +23,30 @@ export default function Checkout() {
         }
     }, [hasLifetimeAccess, navigate]);
 
+    const onlyDigits = (v: string) => v.replace(/\D/g, "");
+    const isValidCpf = (v: string) => {
+        const c = onlyDigits(v);
+        if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
+        let sum = 0, rest;
+        for (let i = 1; i <= 9; i++) sum += parseInt(c.substring(i - 1, i)) * (11 - i);
+        rest = (sum * 10) % 11;
+        if (rest === 10 || rest === 11) rest = 0;
+        if (rest !== parseInt(c.substring(9, 10))) return false;
+        sum = 0;
+        for (let i = 1; i <= 10; i++) sum += parseInt(c.substring(i - 1, i)) * (12 - i);
+        rest = (sum * 10) % 11;
+        if (rest === 10 || rest === 11) rest = 0;
+        if (rest !== parseInt(c.substring(10, 11))) return false;
+        return true;
+    };
+
     const generatePix = async () => {
         setLoading(true);
         try {
-            // In a real scenario, this should be a backend call to GouPay
-            // Since we don't have a backend yet, we'll demonstrate the logic
-            // Note: Front-end calls to GouPay are discouraged for security, 
-            // but provided here for UI demonstration with the user's key.
+            if (!fullName || !email || !isValidCpf(cpf)) {
+                toast.error("Preencha nome, e-mail e CPF válido.");
+                return;
+            }
 
             const response = await fetch("/api/pix/generate", {
                 method: "POST",
@@ -33,11 +55,12 @@ export default function Checkout() {
                 },
                 body: JSON.stringify({
                     amount: 24790, // R$ 247,90
-                    description: `Lifetime Access - Vitrino (${user?.email})`,
+                    description: `Lifetime Access - Vitrino (${email})`,
                     customer: {
-                        name: user?.email?.split("@")[0] || "Cliente Vitrino",
-                        email: user?.email || "pagamento@vitrino.com",
-                        cpf: "12345678909" // Using a more realistic CPF
+                        name: fullName,
+                        email: email,
+                        cpf: onlyDigits(cpf),
+                        phone: onlyDigits(phone) || "11999999999"
                     }
                 })
             });
@@ -93,6 +116,49 @@ export default function Checkout() {
                             <span className="text-[10px] bg-red-600 text-white px-2 py-1 rounded-full font-bold">LIFETIME</span>
                         </div>
                     </div>
+
+                    {!pixData && (
+                        <div className="grid grid-cols-1 gap-3 text-left">
+                            <div>
+                                <label className="text-xs font-medium text-muted-foreground">Nome completo</label>
+                                <Input
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    placeholder="Seu nome"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-medium text-muted-foreground">E-mail</label>
+                                <Input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="voce@exemplo.com"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">CPF</label>
+                                    <Input
+                                        inputMode="numeric"
+                                        value={cpf}
+                                        onChange={(e) => setCpf(onlyDigits(e.target.value))}
+                                        placeholder="Somente números"
+                                        maxLength={14}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Telefone (opcional)</label>
+                                    <Input
+                                        inputMode="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(onlyDigits(e.target.value))}
+                                        placeholder="DDD + número"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <ul className="space-y-3 text-left">
                         {[
