@@ -2,8 +2,13 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, hasLifetimeAccess } = useAuth();
   if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
+
+  if (!hasLifetimeAccess && window.location.pathname !== "/checkout") {
+    return <Navigate to="/checkout" replace />;
+  }
+
   return <>{children}</>;
 }

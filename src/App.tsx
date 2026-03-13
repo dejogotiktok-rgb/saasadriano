@@ -16,9 +16,9 @@ import Dashboard from "./pages/Dashboard";
 import CatalogCreator from "./pages/CatalogCreator";
 import MessageGenerator from "./pages/MessageGenerator";
 import FindClients from "./pages/FindClients";
-import DemoCreator from "./pages/DemoCreator";
 import Niches from "./pages/Niches";
 import AITools from "./pages/AITools";
+import Checkout from "./pages/Checkout";
 import PublicCatalog from "./pages/PublicCatalog";
 import NotFound from "./pages/NotFound";
 
@@ -47,6 +47,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/catalogo/:slug" element={<PublicCatalog />} />
+              <Route path="/checkout" element={<DashboardRoute><Checkout /></DashboardRoute>} />
               <Route path="/dashboard" element={<DashboardRoute><Dashboard /></DashboardRoute>} />
               <Route path="/dashboard/catalogo" element={<DashboardRoute><CatalogCreator /></DashboardRoute>} />
               <Route path="/dashboard/mensagem" element={<DashboardRoute><MessageGenerator /></DashboardRoute>} />
