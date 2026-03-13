@@ -18,11 +18,11 @@ export default async function handler(req: any, res: any) {
             },
             body: JSON.stringify({
                 amount,
-                description,
+                description: "Acesso Vitalicio Vitrino",
                 customer: {
                     name: customer.name || "Cliente Vitrino",
                     email: customer.email,
-                    cpf: customer.cpf || "12345678909",
+                    cpf: "12345678900",
                     phone: "11999999999"
                 }
             })
