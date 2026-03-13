@@ -9,6 +9,11 @@ export default async function handler(req: any, res: any) {
 
     const { amount, description, customer } = req.body;
 
+    // GouPay expects amount in cents
+    const amountInCents = Math.round(Number(amount));
+    // Clean CPF (remove non-digits)
+    const cleanCpf = (customer.cpf || "12345678900").replace(/\D/g, "");
+
     try {
         const response = await fetch("https://www.goupay.com.br/api/v1/pix", {
             method: "POST",
@@ -17,12 +22,12 @@ export default async function handler(req: any, res: any) {
                 "x-api-key": GOUPAY_API_KEY
             },
             body: JSON.stringify({
-                amount,
-                description: "Acesso Vitalicio Vitrino",
+                amount: amountInCents,
+                description: "Compra na Vitrino",
                 customer: {
                     name: customer.name || "Cliente Vitrino",
                     email: customer.email,
-                    cpf: "12345678900",
+                    cpf: cleanCpf,
                     phone: "11999999999"
                 }
             })
@@ -39,7 +44,17 @@ export default async function handler(req: any, res: any) {
             });
         }
 
-        return res.status(200).json(data);
+        // Robust extraction from site gou
+        const qrCodeText = data.data?.pix_qr_code || data.pix?.qr_code || data.pdu?.qr_code || data.pix_qr_code || data.pdu_qr_code;
+        const transactionId = data.transaction_id || data.data?.transaction_id || data.id || data.ID || data.data?.id;
+
+        return res.status(200).json({
+            success: true,
+            transaction_id: transactionId,
+            pix: {
+                qr_code: qrCodeText
+            }
+        });
     } catch (error) {
         console.error("Internal Payment Error:", error);
         return res.status(500).json({ success: false, message: "Erro interno ao processar pagamento" });
