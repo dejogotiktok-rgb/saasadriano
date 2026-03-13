@@ -18,6 +18,7 @@ export interface Catalog {
   description: string;
   whatsapp: string;
   products: Product[];
+  metadata?: Record<string, any>;
   createdAt: string;
 }
 
@@ -61,6 +62,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         description: c.description,
         whatsapp: c.whatsapp,
         products: c.products || [],
+        metadata: c.metadata || {},
         createdAt: c.created_at,
       }));
 
@@ -84,6 +86,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
           description: catalog.description,
           whatsapp: catalog.whatsapp,
           products: catalog.products,
+          metadata: catalog.metadata || {},
         },
       ])
       .select()
@@ -104,6 +107,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         description: data.description,
         whatsapp: data.whatsapp,
         products: data.products,
+        metadata: data.metadata || {},
         createdAt: data.created_at,
       };
       setCatalogs((prev) => [newCatalog, ...prev]);
@@ -137,6 +141,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       description: data.description,
       whatsapp: data.whatsapp,
       products: data.products,
+      metadata: data.metadata || {},
       createdAt: data.created_at,
     };
   };

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Check, ExternalLink, Copy, Sparkles, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Check, ExternalLink, Copy, Sparkles, AlertTriangle, Clock, MapPin, Share2, ListChecks } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
@@ -14,6 +14,10 @@ export default function CatalogCreator() {
   const [niche, setNiche] = useState("");
   const [description, setDescription] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [hours, setHours] = useState("");
+  const [address, setAddress] = useState("");
+  const [instagram, setInstagram] = useState("");
+
   const [products, setProducts] = useState<Product[]>([
     { id: crypto.randomUUID(), name: "", price: "", image: "" },
   ]);
@@ -33,103 +37,126 @@ export default function CatalogCreator() {
     setProducts((p) => p.map((pr) => (pr.id === id ? { ...pr, [field]: value } : pr)));
   };
 
-  const generatePromptText = (name: string, nicheStr: string, desc: string, wa: string, prods: Product[]) => {
-    const productsList = prods.map(p => `- **${p.name}**: ${p.price}`).join("\n");
+  const generatePromptText = () => {
+    const productsList = products.filter(p => p.name).map(p => `- **${p.name}**: ${p.price}`).join("\n");
 
-    return `Crie um site de catálogo digital (Showcase) profissional e moderno para o seguinte negócio:
+    let nicheSpecificAdvice = "";
+    const lowerNiche = niche.toLowerCase();
 
-**Informações do Negócio:**
-- **Nome:** ${name}
-- **Nicho:** ${nicheStr}
-- **Descrição:** ${desc}
-- **WhatsApp para contato:** ${wa}
+    if (lowerNiche.includes("barber") || lowerNiche.includes("salao")) {
+      nicheSpecificAdvice = "- Adicione uma seção de 'Nossos Serviços' com preços claros.\n- Inclua um botão de agendamento que direcione para o WhatsApp ou sistema de reserva.\n- Crie uma galeria de fotos de 'Antes e Depois' ou cortes realizados.";
+    } else if (lowerNiche.includes("restaurante") || lowerNiche.includes("comida") || lowerNiche.includes("doce")) {
+      nicheSpecificAdvice = "- Crie um menu digital interativo com categorias (entradas, pratos, bebidas).\n- Adicione opção de 'Carrinho' ou 'Pedido Rápido' via WhatsApp.\n- Destaque os pratos mais vendidos com fotos grandes e atraentes.";
+    } else if (lowerNiche.includes("loja") || lowerNiche.includes("venda") || lowerNiche.includes("ecommerce")) {
+      nicheSpecificAdvice = "- Foco total na vitrine de produtos com filtros de categoria.\n- Botão 'Comprar Agora' em destaque.\n- Seção de depoimentos de clientes para gerar confiança.";
+    } else {
+      nicheSpecificAdvice = "- Foque em apresentar os diferenciais do negócio de forma visual e direta.\n- Facilite o contato do cliente em todas as seções.";
+    }
 
-**Lista de Produtos:**
-${productsList}
+    return `Aja como um Especialista em UX/UI e Engenheiro de Software Sênior. Sua tarefa é criar um site de "Vitrino Digital" (Showcase) de alto padrão, focado em conversão e estética premium.
 
-**Requisitos de Design:**
-- Design limpo, premium e focado em conversão.
-- Cores harmoniosas (estilo moderno).
-- Carrossel de produtos ou grade elegante.
-- Botão "Pedir no WhatsApp" em cada produto.
-- Responsivo para dispositivos móveis.
-- Adicione fotos de placeholder de alta qualidade relacionadas ao nicho.
+**CONTEXTO DO NEGÓCIO:**
+- **Nome:** ${businessName}
+- **Nicho:** ${niche}
+- **A Visão do Dono:** ${description}
 
-Por favor, gere a estrutura completa e funcional do frontend para este catálogo.`;
+**DETALHES DE CONTATO E OPERAÇÃO:**
+- **WhatsApp:** ${whatsapp}
+- **Horário de Funcionamento:** ${hours || "Não informado"}
+- **Endereço/Localização:** ${address || "Não informado"}
+- **Instagram:** ${instagram || "@"}
+
+**ITENS / SERVIÇOS / PRODUTOS:**
+${productsList || "O usuário descreveu na visão acima."}
+
+**DIRETRIZES TÉCNICAS E DE DESIGN:**
+- Tecnologia: React, Tailwind CSS, Framer Motion (para micro-interações fluidas).
+- Design System: Use uma paleta de cores moderna (Vibrante mas elegante), tipografia clean (Inter ou Montserrat).
+- Estrutura: Hero Section Impactante, Seção Sobre, Vitrine de Itens, Seção de Contato/Localização e Footer.
+- Funcionalidade: Botões de call-to-action (CTA) amigáveis que abrem o WhatsApp com uma mensagem pré-preenchida.
+
+**RECOMENDAÇÕES ESPECÍFICAS PARA ESTE NICHO:**
+${nicheSpecificAdvice}
+
+Por favor, gere o código completo, responsivo e pronto para uso deste catálogo digital.`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!businessName || !niche) { toast.error("Preencha o nome e nicho do negócio."); return; }
-    const validProducts = products.filter((p) => p.name && p.price);
-    if (validProducts.length === 0) { toast.error("Adicione pelo menos um produto."); return; }
 
+    const validProducts = products.filter((p) => p.name);
     const s = businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    const prompt = generatePromptText(businessName, niche, description, whatsapp, validProducts);
+    const prompt = generatePromptText();
 
     try {
-      await addCatalog({ businessName, slug: s, niche, description, whatsapp, products: validProducts });
+      await addCatalog({
+        businessName,
+        slug: s,
+        niche,
+        description,
+        whatsapp,
+        products: validProducts,
+        metadata: { hours, address, instagram }
+      });
       setGeneratedPrompt(prompt);
       setCreated(true);
-      toast.success("Prompt gerado com sucesso!");
+      toast.success("Sistema gerou um prompt inteligente!");
     } catch (err) {
-      toast.error("Erro ao processar ideias. Tente outro nome de negócio.");
+      toast.error("Erro ao processar. Tente novamente.");
     }
   };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(generatedPrompt);
-    toast.success("Prompt copiado para a área de transferência!");
+    toast.success("Prompt copiado com sucesso!");
   };
 
   if (created) {
     return (
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mx-auto max-w-2xl">
-        <div className="rounded-xl border bg-card p-8 shadow-sm">
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-primary/10 p-2 text-primary">
-                <Sparkles className="h-6 w-6" />
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mx-auto max-w-3xl">
+        <div className="rounded-2xl border bg-card p-4 shadow-xl sm:p-10">
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="rounded-2xl bg-primary/10 p-3 text-primary shadow-inner">
+                <Sparkles className="h-8 w-8" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">Ideias processadas!</h1>
-                <p className="text-sm text-muted-foreground">Aqui está o seu prompt pronto para o gerador.</p>
+                <h1 className="text-2xl font-bold">Prompt Inteligente Gerado!</h1>
+                <p className="text-muted-foreground">Analisei suas ideias e criei a estrutura perfeita.</p>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setCreated(false)}>
-              <Trash2 className="h-4 w-4 text-muted-foreground" />
-            </Button>
           </div>
 
-          <div className="relative mb-6">
-            <div className="absolute right-3 top-3">
-              <Button size="sm" variant="secondary" className="gap-2" onClick={copyToClipboard}>
-                <Copy className="h-4 w-4" /> Copiar
+          <div className="group relative mb-8">
+            <div className="absolute right-4 top-4 z-10 flex gap-2">
+              <Button size="sm" variant="secondary" className="gap-2 bg-background/80 backdrop-blur" onClick={copyToClipboard}>
+                <Copy className="h-4 w-4" /> Copiar Código
               </Button>
             </div>
-            <pre className="max-h-[300px] overflow-y-auto whitespace-pre-wrap rounded-lg bg-muted p-4 pt-12 text-sm text-muted-foreground">
-              {generatedPrompt}
-            </pre>
-          </div>
-
-          <div className="mb-8 rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
-            <div className="flex gap-3">
-              <AlertTriangle className="h-5 w-5 shrink-0 text-yellow-600 dark:text-yellow-500" />
-              <div className="text-sm">
-                <p className="font-semibold text-yellow-700 dark:text-yellow-400">Próximo Passo Importante:</p>
-                <p className="text-yellow-600/90 dark:text-yellow-400/80">
-                  Clique no botão abaixo para ir ao **Gerador (Lovable)**. Assim que chegar lá, **cole este prompt no chat** para que o catálogo seja construído automaticamente para você.
-                </p>
-              </div>
+            <div className="max-h-[400px] overflow-y-auto rounded-xl bg-muted/50 p-6 pt-16 font-mono text-sm leading-relaxed text-muted-foreground shadow-inner border">
+              {generatedPrompt.split('\n').map((line, i) => (
+                <div key={i} className="mb-2">{line}</div>
+              ))}
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button className="flex-1 gap-2 py-6 text-lg" onClick={() => window.open("https://lovable.dev/dashboard", "_blank")}>
-              Ir para o Gerador <ExternalLink className="h-5 w-5" />
+          <div className="mb-8 rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-6 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <h3 className="mb-2 font-bold text-primary">Último Passo!</h3>
+            <p className="mx-auto max-w-md text-sm text-muted-foreground">
+              Vá ao **Gerador (Lovable)** e cole este prompt no chat. Ele vai ler todas as suas informações e construir o site automaticamente.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <Button className="flex-1 gap-3 py-8 text-xl font-bold shadow-lg" onClick={() => window.open("https://lovable.dev/dashboard", "_blank")}>
+              Abrir Lovable Agora <ExternalLink className="h-6 w-6" />
             </Button>
-            <Button variant="outline" className="py-6" onClick={() => setCreated(false)}>
-              Criar Novas Ideias
+            <Button variant="ghost" className="py-8" onClick={() => setCreated(false)}>
+              Ajustar Informações
             </Button>
           </div>
         </div>
@@ -138,64 +165,81 @@ Por favor, gere a estrutura completa e funcional do frontend para este catálogo
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">O que você tem em mente?</h1>
-        <p className="mt-2 text-muted-foreground">
-          Deixe suas ideias aqui. Nossa inteligência criará um prompt perfeito para o gerador transformar seu sonho em realidade.
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-10 text-center">
+        <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="mx-auto mb-4 inline-flex rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
+          Inteligência para Negócios
+        </motion.div>
+        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">Prepare sua Vitrine</h1>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Conte-nos sobre seu empreendimento. Vamos gerar o prompt ideal para criar seu catálogo.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="space-y-6 rounded-xl border bg-card p-6 shadow-sm">
+      <form onSubmit={handleSubmit} className="space-y-10">
+        <div className="space-y-8 rounded-3xl border bg-card p-8 shadow-sm">
+          <div className="flex items-center gap-3 border-b pb-4">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary"><Sparkles className="h-5 w-5" /></div>
+            <h3 className="text-lg font-bold">Dados Principais</h3>
+          </div>
+
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Nome do negócio</Label>
-              <Input
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="Ex: Doces da Maria"
-                className="bg-background"
-              />
+              <Label className="text-foreground/70">Nome Comercial</Label>
+              <Input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Ex: Barber Shop Imperial" className="h-12 bg-muted/30" />
             </div>
             <div className="space-y-2">
-              <Label>Nicho</Label>
-              <Input
-                value={niche}
-                onChange={(e) => setNiche(e.target.value)}
-                placeholder="Ex: Confeitaria"
-                className="bg-background"
-              />
+              <Label className="text-foreground/70">Nicho do Negócio</Label>
+              <Input value={niche} onChange={(e) => setNiche(e.target.value)} placeholder="Ex: Barbearia Profissional" className="h-12 bg-muted/30" />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>O que você quer vender? (Ideias e Detalhes)</Label>
+            <Label className="text-foreground/70">Sua Visão / Informações Gerais</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Descreva seu negócio, sua visão e o que o torna especial..."
-              rows={4}
-              className="bg-background"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>WhatsApp para suporte (opcional)</Label>
-            <Input
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="11999999999"
-              className="bg-background"
+              placeholder="Descreva o que seu negócio faz, seus diferenciais e o que quer passar para o cliente..."
+              rows={5}
+              className="resize-none bg-muted/30 p-4"
             />
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between px-2">
-            <Label className="text-lg font-semibold">Seus Produtos/Serviços</Label>
-            <Button type="button" variant="outline" size="sm" onClick={addProduct} className="gap-2 border-primary/20 hover:bg-primary/5">
-              <Plus className="h-4 w-4" /> Adicionar Produto
+        <div className="space-y-8 rounded-3xl border bg-card p-8 shadow-sm">
+          <div className="flex items-center gap-3 border-b pb-4">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary"><Clock className="h-5 w-5" /></div>
+            <h3 className="text-lg font-bold">Operação e Contato</h3>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label className="text-foreground/70 flex items-center gap-2"><Clock className="h-3 w-3" /> Horários</Label>
+              <Input value={hours} onChange={(e) => setHours(e.target.value)} placeholder="Seg a Sex: 09h às 19h" className="h-11 bg-muted/30" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground/70 flex items-center gap-2"><MapPin className="h-3 w-3" /> Localização</Label>
+              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Bairro ou Cidade" className="h-11 bg-muted/30" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground/70 flex items-center gap-2"><Share2 className="h-3 w-3" /> Instagram</Label>
+              <Input value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder="@seu_perfil" className="h-11 bg-muted/30" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground/70 flex items-center gap-2">WhatsApp</Label>
+              <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="11999999999" className="h-11 bg-muted/30" />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-primary/10 p-2 text-primary"><ListChecks className="h-5 w-5" /></div>
+              <h3 className="text-lg font-bold">Itens, Serviços ou Detalhes</h3>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={addProduct} className="gap-2 border-primary/30 hover:bg-primary/5">
+              <Plus className="h-4 w-4" /> Adicionar Outro
             </Button>
           </div>
 
@@ -203,26 +247,26 @@ Por favor, gere a estrutura completa e funcional do frontend para este catálogo
             {products.map((p, i) => (
               <motion.div
                 key={p.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="relative rounded-xl border bg-card p-5 shadow-sm transition-all hover:border-primary/30"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="group relative rounded-2xl border bg-card p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Produto {i + 1}</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-primary/40">Registro {i + 1}</span>
                   {products.length > 1 && (
-                    <Button type="button" variant="ghost" size="sm" onClick={() => removeProduct(p.id)} className="h-8 w-8 p-0 hover:text-destructive">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => removeProduct(p.id)} className="h-8 w-8 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label className="text-xs">Nome do produto</Label>
-                    <Input placeholder="Ex: Bolo de Chocolate" value={p.name} onChange={(e) => updateProduct(p.id, "name", e.target.value)} className="bg-background" />
+                    <Label className="text-xs font-bold uppercase text-muted-foreground">O que é?</Label>
+                    <Input placeholder="Ex: Corte Degradê ou Rodízio" value={p.name} onChange={(e) => updateProduct(p.id, "name", e.target.value)} className="bg-muted/20" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs">Preço aproximado</Label>
-                    <Input placeholder="Ex: R$ 50,00" value={p.price} onChange={(e) => updateProduct(p.id, "price", e.target.value)} className="bg-background" />
+                    <Label className="text-xs font-bold uppercase text-muted-foreground">Valor / Detalhe</Label>
+                    <Input placeholder="Ex: R$ 45,00 ou Incluso Bebida" value={p.price} onChange={(e) => updateProduct(p.id, "price", e.target.value)} className="bg-muted/20" />
                   </div>
                 </div>
               </motion.div>
@@ -230,8 +274,8 @@ Por favor, gere a estrutura completa e funcional do frontend para este catálogo
           </div>
         </div>
 
-        <Button type="submit" className="w-full gap-2 py-8 text-xl font-bold shadow-lg transition-transform hover:scale-[1.01]" size="lg">
-          <Sparkles className="h-6 w-6" /> Gerar Prompt para o Catálogo
+        <Button type="submit" className="w-full gap-3 py-10 text-2xl font-black shadow-2xl transition-all active:scale-[0.98] group" size="lg">
+          <Sparkles className="h-8 w-8 transition-transform group-hover:rotate-12" /> GERAR SISTEMA INTELIGENTE
         </Button>
       </form>
     </div>
