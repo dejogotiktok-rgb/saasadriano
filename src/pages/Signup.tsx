@@ -23,7 +23,10 @@ export default function Signup() {
     try {
       await signup(email, password);
       navigate("/dashboard");
-    } catch { toast.error("Erro ao criar conta."); }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Erro ao criar conta.");
+    }
   };
 
   return (

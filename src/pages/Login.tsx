@@ -20,7 +20,10 @@ export default function Login() {
     try {
       await login(email, password);
       navigate("/dashboard");
-    } catch { toast.error("Erro ao fazer login."); }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Erro ao fazer login.");
+    }
   };
 
   return (
