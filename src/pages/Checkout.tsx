@@ -26,11 +26,10 @@ export default function Checkout() {
             // Note: Front-end calls to GouPay are discouraged for security, 
             // but provided here for UI demonstration with the user's key.
 
-            const response = await fetch("https://www.goupay.com.br/api/v1/pix", {
+            const response = await fetch("/api/pix/generate", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "x-api-key": "gou_live_ce168d1dedfb46a5bc51c2b9e236bd26"
                 },
                 body: JSON.stringify({
                     amount: 24790, // R$ 247,90
@@ -38,12 +37,13 @@ export default function Checkout() {
                     customer: {
                         name: user?.email?.split("@")[0] || "Cliente Vitrino",
                         email: user?.email || "pagamento@vitrino.com",
-                        cpf: "00000000000" // Should be collected in a real form
+                        cpf: "12345678909" // Using a more realistic CPF
                     }
                 })
             });
 
             const data = await response.json();
+            console.log("Pix Generation Response:", data);
             if (data.success) {
                 setPixData({
                     qr_code: data.pix.qr_code,
