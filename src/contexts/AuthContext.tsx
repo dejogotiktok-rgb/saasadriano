@@ -96,6 +96,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signup = async (email: string, password: string) => {
+    setIsLoading(true);
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    await supabase.auth.signOut();
+    setUser(null);
+    setHasLifetimeAccess(false);
+    setIsAdmin(false);
+    setIsLoading(false);
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
