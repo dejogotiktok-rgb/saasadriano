@@ -36,32 +36,51 @@ export default async function handler(req: any, res: any) {
 
             const supabase = createClient(url, serviceKey);
 
-            // Find profile by email (our current system uses email)
+            // Find profile by email
             const { data: userData, error: userError } = await supabase
                 .from('profiles')
-                .select('id')
+                .select('id, has_lifetime_access')
                 .eq('email', customer.email)
-                .single();
+                .maybeSingle();
 
-            if (userError || !userData) {
-                console.error(`User profile not found for email: ${customer.email}`, userError);
-                return res.status(200).json({ success: false, message: "Perfil não encontrado" });
+            if (userError) {
+                console.error("Error searching user:", userError);
+                return res.status(500).json({ error: "Erro ao buscar usuário" });
             }
 
-            const { error: updateError } = await supabase
-                .from('profiles')
-                .update({
-                    has_lifetime_access: true,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', userData.id);
+            if (!userData) {
+                // IMPORTANT: If user doesn't exist in profiles yet, create it!
+                // This handles cases where user pays before ever logging into the dashboard
+                console.log(`User ${customer.email} not found, creating new profile...`);
+                const { error: insertError } = await supabase
+                    .from('profiles')
+                    .insert([{
+                        email: customer.email,
+                        has_lifetime_access: true,
+                        updated_at: new Date().toISOString()
+                    }]);
+                
+                if (insertError) {
+                    console.error("Error creating profile in webhook:", insertError);
+                    return res.status(500).json({ error: "Erro ao criar perfil" });
+                }
+            } else {
+                // User exists, just update access
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({
+                        has_lifetime_access: true,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', userData.id);
 
-            if (updateError) {
-                console.error("Error updating profile:", updateError);
-                return res.status(500).json({ error: "Erro ao atualizar acesso" });
+                if (updateError) {
+                    console.error("Error updating profile:", updateError);
+                    return res.status(500).json({ error: "Erro ao atualizar acesso" });
+                }
             }
 
-            console.log(`Access granted to user ${customer.email}`);
+            console.log(`SUCCESS: Access granted to ${customer.email}`);
             return res.status(200).json({ success: true, message: "Acesso vitalício concedido!" });
         }
 
