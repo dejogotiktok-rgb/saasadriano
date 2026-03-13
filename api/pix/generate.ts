@@ -22,15 +22,8 @@ export default async function handler(req: any, res: any) {
                 customer: {
                     name: customer.name || "Cliente Vitrino",
                     email: customer.email,
-                    type: "individual",
-                    document: customer.cpf || "12345678909",
-                    phones: {
-                        mobile_phone: {
-                            country_code: "55",
-                            area_code: "11",
-                            number: "999999999"
-                        }
-                    }
+                    cpf: customer.cpf || "12345678909",
+                    phone: "11999999999"
                 }
             })
         });
