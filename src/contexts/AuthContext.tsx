@@ -39,27 +39,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setHasLifetimeAccess(false);
       setIsAdmin(false);
     } else {
-      setHasLifetimeAccess(data?.has_lifetime_access || (data?.is_admin ?? false));
-      setIsAdmin(data?.is_admin ?? false);
+      setHasLifetimeAccess(data?.has_lifetime_access === true || data?.is_admin === true);
+      setIsAdmin(data?.is_admin === true);
     }
   };
 
   useEffect(() => {
     // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAccess(session.user.id);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        checkAccess(currentUser.id);
       } else {
+        setHasLifetimeAccess(false);
+        setIsAdmin(false);
         setIsLoading(false);
       }
     });
 
     // Listen for changes on auth state (logged in, signed out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAccess(session.user.id);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        checkAccess(currentUser.id);
       } else {
         setHasLifetimeAccess(false);
         setIsAdmin(false);
