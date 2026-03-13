@@ -51,7 +51,6 @@ const App = () => (
               <Route path="/dashboard/catalogo" element={<DashboardRoute><CatalogCreator /></DashboardRoute>} />
               <Route path="/dashboard/mensagem" element={<DashboardRoute><MessageGenerator /></DashboardRoute>} />
               <Route path="/dashboard/clientes" element={<DashboardRoute><FindClients /></DashboardRoute>} />
-              <Route path="/dashboard/demo" element={<DashboardRoute><DemoCreator /></DashboardRoute>} />
               <Route path="/dashboard/nichos" element={<DashboardRoute><Niches /></DashboardRoute>} />
               <Route path="/dashboard/ferramentas" element={<DashboardRoute><AITools /></DashboardRoute>} />
               <Route path="*" element={<NotFound />} />
