@@ -22,6 +22,8 @@ import Checkout from "./pages/Checkout";
 import PublicCatalog from "./pages/PublicCatalog";
 import NotFound from "./pages/NotFound";
 
+import Admin from "./pages/Admin";
+
 const queryClient = new QueryClient();
 
 function DashboardRoute({ children }: { children: React.ReactNode }) {
@@ -49,6 +51,7 @@ const App = () => (
               <Route path="/catalogo/:slug" element={<PublicCatalog />} />
               <Route path="/checkout" element={<DashboardRoute><Checkout /></DashboardRoute>} />
               <Route path="/dashboard" element={<DashboardRoute><Dashboard /></DashboardRoute>} />
+              <Route path="/dashboard/admin" element={<DashboardRoute><Admin /></DashboardRoute>} />
               <Route path="/dashboard/catalogo" element={<DashboardRoute><CatalogCreator /></DashboardRoute>} />
               <Route path="/dashboard/mensagem" element={<DashboardRoute><MessageGenerator /></DashboardRoute>} />
               <Route path="/dashboard/clientes" element={<DashboardRoute><FindClients /></DashboardRoute>} />

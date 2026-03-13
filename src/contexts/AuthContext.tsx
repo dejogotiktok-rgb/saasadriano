@@ -9,6 +9,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isLoading: boolean;
   hasLifetimeAccess: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -16,12 +17,13 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [hasLifetimeAccess, setHasLifetimeAccess] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAccess = async (userId: string) => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("has_lifetime_access")
+      .select("has_lifetime_access, is_admin")
       .eq("id", userId)
       .single();
 
@@ -31,12 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error.code === 'PGRST116') {
         const { error: insertError } = await supabase
           .from("profiles")
-          .insert([{ id: userId, has_lifetime_access: false }]);
+          .insert([{ id: userId, has_lifetime_access: false, is_admin: false }]);
         if (insertError) console.error("Error creating profile:", insertError);
       }
       setHasLifetimeAccess(false);
+      setIsAdmin(false);
     } else {
       setHasLifetimeAccess(data?.has_lifetime_access ?? false);
+      setIsAdmin(data?.is_admin ?? false);
     }
   };
 
@@ -58,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         checkAccess(session.user.id);
       } else {
         setHasLifetimeAccess(false);
+        setIsAdmin(false);
         setIsLoading(false);
       }
     });
@@ -67,20 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Set loading to false once we have both user (or null) and access status
   useEffect(() => {
-    if (user === null || (user !== null && hasLifetimeAccess !== undefined)) {
-      // A bit tricky because hasLifetimeAccess is boolean. 
-      // We'll manage setIsLoading inside checkAccess and session load
-    }
-  }, [user, hasLifetimeAccess]);
-
-  // Adjusting the isLoading logic to be more reliable
-  useEffect(() => {
-    if (!user) {
-      setIsLoading(false);
-    } else if (hasLifetimeAccess !== undefined) {
+    if (user === null || (user !== null && hasLifetimeAccess !== undefined && isAdmin !== undefined)) {
       setIsLoading(false);
     }
-  }, [user, hasLifetimeAccess]);
+  }, [user, hasLifetimeAccess, isAdmin]);
 
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -97,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, isLoading, hasLifetimeAccess }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, isLoading, hasLifetimeAccess, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -28,7 +29,7 @@ const navItems = [
 ];
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
-  const { logout, user } = useAuth();
+  const { logout, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -64,6 +65,22 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             </button>
           );
         })}
+
+        {isAdmin && (
+          <button
+            onClick={() => {
+              navigate("/dashboard/admin");
+              setSidebarOpen(false);
+            }}
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === "/dashboard/admin"
+                ? "bg-red-600 text-white"
+                : "text-red-500 hover:bg-red-50 hover:text-red-600"
+              }`}
+          >
+            <ShieldCheck className="h-4 w-4" />
+            Painel Admin
+          </button>
+        )}
       </nav>
       <div className="border-t p-3">
         <p className="mb-2 truncate px-3 text-xs text-muted-foreground">{user?.email}</p>

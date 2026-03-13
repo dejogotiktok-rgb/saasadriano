@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -17,12 +18,29 @@ export default function Checkout() {
     const [email, setEmail] = useState<string>(user?.email || "");
     const [cpf, setCpf] = useState<string>("");
     const [phone, setPhone] = useState<string>("");
+    const [productPrice, setProductPrice] = useState<number>(247.90);
 
     useEffect(() => {
         if (hasLifetimeAccess) {
             navigate("/dashboard");
         }
+        fetchPrice();
     }, [hasLifetimeAccess, navigate]);
+
+    const fetchPrice = async () => {
+        try {
+            const { data, error } = await supabase
+                .from("app_config")
+                .select("value")
+                .eq("key", "product_price")
+                .single();
+            if (data && !error) {
+                setProductPrice(Number(data.value));
+            }
+        } catch (e) {
+            // Fallback to default
+        }
+    };
 
     const onlyDigits = (v: string) => v.replace(/\D/g, "");
     const isValidCpf = (v: string) => {
@@ -55,7 +73,7 @@ export default function Checkout() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    amount: 247.90, // R$ 247,90
+                    amount: productPrice, // Dynamic price
                     description: `Lifetime Access - Vitrino (${email})`,
                     customer: {
                         name: fullName,
@@ -111,7 +129,9 @@ export default function Checkout() {
                     <div className="flex justify-between items-center text-left">
                         <div>
                             <p className="text-xs uppercase font-black text-red-500 tracking-widest">Valor Único</p>
-                            <h2 className="text-4xl font-extrabold mt-1">R$ 247,90</h2>
+                            <h2 className="text-4xl font-extrabold mt-1">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(productPrice)}
+                            </h2>
                         </div>
                         <div className="text-right">
                             <span className="text-[10px] bg-red-600 text-white px-2 py-1 rounded-full font-bold">LIFETIME</span>
