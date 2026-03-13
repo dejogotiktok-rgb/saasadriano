@@ -20,21 +20,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const checkAccess = async (userId: string) => {
+  const checkAccess = async (user: User) => {
     const { data, error } = await supabase
       .from("profiles")
       .select("has_lifetime_access, is_admin")
-      .eq("id", userId)
-      .single();
+      .eq("id", user.id)
+      .maybeSingle(); // Better for checking existence
 
     if (error) {
-      console.error("Error checking access:", error);
-      // If profile doesn't exist, create one
-      if (error.code === 'PGRST116') {
-        const { error: insertError } = await supabase
-          .from("profiles")
-          .insert([{ id: userId, has_lifetime_access: false, is_admin: false }]);
-        if (insertError) console.error("Error creating profile:", insertError);
+      console.error("Supabase Select Error:", error);
+      setHasLifetimeAccess(false);
+      setIsAdmin(false);
+      return;
+    }
+
+    if (!data) {
+      console.log("Profile not found, creating for:", user.email);
+      // If profile doesn't exist, create one including email
+      const { error: insertError } = await supabase
+        .from("profiles")
+        .insert([{ 
+          id: user.id, 
+          email: user.email,
+          has_lifetime_access: false, 
+          is_admin: false 
+        }]);
+      
+      if (insertError) {
+        console.error("Supabase Insert Error:", insertError);
       }
       setHasLifetimeAccess(false);
       setIsAdmin(false);
@@ -50,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
-        checkAccess(currentUser.id);
+        checkAccess(currentUser);
       } else {
         setHasLifetimeAccess(false);
         setIsAdmin(false);
@@ -63,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
-        checkAccess(currentUser.id);
+        checkAccess(currentUser);
       } else {
         setHasLifetimeAccess(false);
         setIsAdmin(false);
