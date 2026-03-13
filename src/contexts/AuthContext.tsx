@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setHasLifetimeAccess(false);
       setIsAdmin(false);
     } else {
-      setHasLifetimeAccess(data?.has_lifetime_access ?? false);
+      setHasLifetimeAccess(data?.has_lifetime_access || (data?.is_admin ?? false));
       setIsAdmin(data?.is_admin ?? false);
     }
   };

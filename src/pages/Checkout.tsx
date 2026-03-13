@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 export default function Checkout() {
-    const { user, hasLifetimeAccess } = useAuth();
+    const { user, hasLifetimeAccess, isAdmin } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [pixData, setPixData] = useState<{ qr_code: string; transaction_id: string } | null>(null);
@@ -21,11 +21,11 @@ export default function Checkout() {
     const [productPrice, setProductPrice] = useState<number>(247.90);
 
     useEffect(() => {
-        if (hasLifetimeAccess) {
+        if (hasLifetimeAccess || isAdmin) {
             navigate("/dashboard");
         }
         fetchPrice();
-    }, [hasLifetimeAccess, navigate]);
+    }, [hasLifetimeAccess, isAdmin, navigate]);
 
     const fetchPrice = async () => {
         try {
