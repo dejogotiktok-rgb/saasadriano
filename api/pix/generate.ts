@@ -47,15 +47,28 @@ export default async function handler(req: any, res: any) {
             });
         }
 
-        // Robust extraction from site gou
-        const qrCodeText = data.data?.pix_qr_code || data.pix?.qr_code || data.pdu?.qr_code || data.pix_qr_code || data.pdu_qr_code;
+        const qrCodeText =
+            data.data?.pix_qr_code ||
+            data.pix?.qr_code ||
+            data.pdu?.qr_code ||
+            data.pix_qr_code ||
+            data.pdu_qr_code ||
+            data.data?.br_code ||
+            data.br_code ||
+            data.data?.emv ||
+            data.emv ||
+            data.data?.copy_paste ||
+            data.copy_paste ||
+            data.qr_code ||
+            data.qrcode ||
+            data.qrCode;
         const transactionId = data.transaction_id || data.data?.transaction_id || data.id || data.ID || data.data?.id;
 
         return res.status(200).json({
             success: true,
             transaction_id: transactionId,
             pix: {
-                qr_code: qrCodeText
+                qr_code: qrCodeText || ""
             }
         });
     } catch (error) {

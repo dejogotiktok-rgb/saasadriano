@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
+import QRCode from "react-qr-code";
 import { Sparkles, CreditCard, CheckCircle2, QrCode, Copy, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -189,11 +190,8 @@ export default function Checkout() {
                             animate={{ scale: 1, opacity: 1 }}
                             className="space-y-4"
                         >
-                            <div className="bg-white p-4 rounded-2xl flex justify-center mx-auto w-48 h-48">
-                                {/* QR Code Simulation */}
-                                <div className="w-full h-full bg-slate-100 flex items-center justify-center text-black">
-                                    <QrCode className="h-32 w-32" />
-                                </div>
+                            <div className="bg-white p-4 rounded-2xl flex justify-center mx-auto">
+                                <QRCode value={pixData.qr_code || ""} size={192} />
                             </div>
 
                             <div className="space-y-2">
