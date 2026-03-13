@@ -20,9 +20,17 @@ export default async function handler(req: any, res: any) {
                 amount,
                 description,
                 customer: {
-                    name: customer.name,
+                    name: customer.name || "Cliente Vitrino",
                     email: customer.email,
-                    cpf: customer.cpf || "12345678909" // fallback realistic CPF
+                    type: "individual",
+                    document: customer.cpf || "12345678909",
+                    phones: {
+                        mobile_phone: {
+                            country_code: "55",
+                            area_code: "11",
+                            number: "999999999"
+                        }
+                    }
                 }
             })
         });
