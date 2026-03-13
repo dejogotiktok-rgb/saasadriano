@@ -11,9 +11,9 @@ import { Loader2, Users, DollarSign, Settings, Save } from "lucide-react";
 interface Profile {
   id: string;
   email: string;
-  full_name: string;
+  full_name?: string;
   has_lifetime_access: boolean;
-  created_at: string;
+  updated_at: string;
 }
 
 export default function Admin() {
@@ -35,13 +35,13 @@ export default function Admin() {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("updated_at", { ascending: false });
 
       if (error) throw error;
       setProfiles(data || []);
     } catch (error) {
       console.error("Error fetching profiles:", error);
-      toast.error("Erro ao carregar perfis");
+      toast.error("Erro ao carregar perfis. Verifique se a tabela profiles está correta.");
     } finally {
       setLoading(false);
     }
@@ -65,6 +65,7 @@ export default function Admin() {
       if (data) setPrice(Number(data.value));
     } catch (error) {
       console.error("Error fetching settings:", error);
+      toast.error("Erro ao carregar configurações. Certifique-se que a tabela 'app_config' existe.");
     }
   };
 
@@ -206,7 +207,7 @@ export default function Admin() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          {new Date(profile.created_at).toLocaleDateString('pt-BR')}
+                          {new Date(profile.updated_at).toLocaleDateString('pt-BR')}
                         </TableCell>
                       </TableRow>
                     ))
